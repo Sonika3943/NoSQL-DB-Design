@@ -1,0 +1,47 @@
+1. RDBMS vs. NoSQL Document Model Comparison
+  #MySQL Implementation:
+  CREATE DATABASE CollegeDB;
+  USE CollegeDB;
+
+  CREATE TABLE Students (
+    Student_ID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Course VARCHAR(50),
+    Semester INT,
+    Marks DECIMAL(5,2)
+);
+
+  INSERT INTO Students VALUES (1, 'Aarav Sharma', 'BCA', 5, 85.5);
+  INSERT INTO Students VALUES (2, 'Priya Singh', 'BCA', 5, 91.0);
+  INSERT INTO Students VALUES (3, 'Rahul Verma', 'BSc IT', 3, 78.0);
+  INSERT INTO Students VALUES (4, 'Neha Gupta', 'MCA', 1, 88.5);
+  INSERT INTO Students VALUES (5, 'Amit Kumar', 'BCA', 5, 82.0);
+
+#MongoDB Equivalent Document Model:
+  use CollegeDB
+  db.Students.insertMany([
+  { Student_ID: 1, Name: "Aarav Sharma", Course: "BCA", Semester: 5, Marks: 85.5 },
+  { Student_ID: 2, Name: "Priya Singh", Course: "BCA", Semester: 5, Marks: 91.0 },
+  { Student_ID: 3, Name: "Rahul Verma", Course: "BSc IT", Semester: 3, Marks: 78.0 },
+  { Student_ID: 4, Name: "Neha Gupta", Course: "MCA", Semester: 1, Marks: 88.5 },
+  { Student_ID: 5, Name: "Amit Kumar", Course: "BCA", Semester: 5, Marks: 82.0 }
+  ])
+
+2. MongoDB Student Operations
+  use CollegeDB
+
+// 1. Display all documents
+db.Students.find().pretty()
+
+// 2. Find students from a particular course
+db.Students.find({ Course: "BCA" })
+
+// 3. Update marks of a student
+db.Students.updateOne({ Student_ID: 1 }, { $set: { Marks: 90.0 } })
+
+// 4. Delete one student
+db.Students.deleteOne({ Student_ID: 5 })
+
+// 5. Count total students
+db.Students.countDocuments()
+  
