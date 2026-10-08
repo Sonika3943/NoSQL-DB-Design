@@ -171,4 +171,161 @@
   { $sort: { count: -1 } }
   ]);
 
-7.
+7.Design a Content Management System for storing articles, authors, categories, tags, and publication status. Write queries to retrieve published and unpublished content according to different criteria. 
+  use CMSDB
+
+  // Insert articles
+  db.articles.insertMany([
+  { title: "Campus Tech Fest", author: "Admin", category: "Events", status: "Published", tags: ["Fest", "Tech"] },
+  { title: "Draft Examination Guidelines", author: "Controller", category: "Exam", status: "Unpublished", tags: ["Rules"] }
+  ]);
+
+  // Query: Retrieve published articles in a specific category
+  db.articles.find({ status: "Published", category: "Events" });
+
+8.Implement a Shopping Cart System using embedded MongoDB documents. Perform operations for adding products, changing quantities, removing products, and calculating the cart value.
+  use ShoppingCartDB
+
+  // Insert cart document for a user
+  db.carts.insertOne({
+  userId: "U101",
+  items: [
+    { productId: "P01", name: "Wireless Mouse", qty: 1, price: 800 },
+    { productId: "P02", name: "USB Hub", qty: 2, price: 400 }
+  ]
+  });
+
+  // Operation: Add product / change quantity (Increment USB Hub quantity by 1)
+  db.carts.updateOne(
+  { userId: "U101", "items.productId": "P02" },
+  { $inc: { "items.$.qty": 1 } }
+  );
+
+  // Operation: Calculate cart total value
+  db.carts.aggregate([
+  { $match: { userId: "U101" } },
+  { $unwind: "$items" },
+  { $group: { _id: "$userId", cartTotal: { $sum: { $multiply: ["$items.qty", "$items.price"] } } } }
+  ]);
+
+9.Create a Product Review and Rating System in MongoDB. Store customer reviews and use aggregation to calculate the average rating and number of reviews for each product.
+  use ReviewDB
+
+  // Insert product reviews
+  db.reviews.insertMany([
+  { productId: "P01", customer: "Aarav", rating: 5, comment: "Excellent build quality!" },
+  { productId: "P01", customer: "Priya", rating: 4, comment: "Good, but a bit pricey." },
+  { productId: "P02", customer: "Rahul", rating: 3, comment: "Average performance." }
+  ]);
+
+  // Query: Calculate average rating and total reviews for each product
+  db.reviews.aggregate([
+  { $group: {
+      _id: "$productId",
+      averageRating: { $avg: "$rating" },
+      totalReviews: { $sum: 1 }
+    }
+  }
+  ]);
+
+10.Design an Inventory Monitoring System containing product stock, minimum stock level, supplier, and restocking date. Write queries to identify products that need immediate restocking.
+  use InventoryDB
+
+  // Insert inventory items
+  db.inventory.insertMany([
+  { productId: "P01", name: "Printer Ink", stock: 4, minStockLevel: 10, supplier: "OfficeDepot", restockingDate: new Date("2026-04-10") },
+  { productId: "P02", name: "A4 Paper Ream", stock: 25, minStockLevel: 15, supplier: "StationeryCo", restockingDate: new Date("2026-04-20") }
+  ]);
+
+  // Query: Identify products that need immediate restocking (stock < minStockLevel)
+  db.inventory.find({ $expr: { $lt: ["$stock", "$minStockLevel"] } });
+
+11.Implement a Bank Wallet Transfer System using MongoDB transactions. Transfer an amount between two users and ensure that both balance updates are completed atomically.
+  use BankDB
+
+  db.accounts.insertMany([
+  { accountNumber: "ACC1001", holder: "Aarav", balance: 5000 },
+  { accountNumber: "ACC1002", holder: "Priya", balance: 3000 }
+  ]);
+
+  // Execute atomic transaction for money transfer
+  const session = db.getMongo().startSession();
+  session.startTransaction();
+  try {
+  const accountsCollection = session.getDatabase("BankDB").accounts;
+  
+  // Deduct from sender
+  accountsCollection.updateOne({ accountNumber: "ACC1001" }, { $inc: { balance: -1000 } }, { session });
+  
+  // Add to receiver
+  accountsCollection.updateOne({ accountNumber: "ACC1002" }, { $inc: { balance: 1000 } }, { session });
+  
+  session.commitTransaction();
+  print("Transaction committed successfully.");
+  } catch (error) {
+  session.abortTransaction();
+  print("Transaction aborted due to error: " + error);
+  } finally {
+  session.endSession();
+  }
+
+12.Create a User Notification System for messages, order updates, and system alerts. Write queries to retrieve unread notifications and update them after the user views them.
+  use NotificationDB
+
+  // Insert notifications
+  db.notifications.insertMany([
+  { userId: "U1", message: "Your order has been shipped.", type: "order", read: false, date: new Date() },
+  { userId: "U1", message: "Password security alert.", type: "system", read: false, date: new Date() }
+  ]);
+
+  // Query: Retrieve unread notifications
+  db.notifications.find({ userId: "U1", read: false });
+
+  // Operation: Update notifications as read after user views them
+  db.notifications.updateMany(
+  { userId: "U1", read: false },
+  { $set: { read: true } }
+  );
+
+13.Design a Course Learning Platform containing courses, instructors, students, modules, progress, and completion status. Retrieve students according to their course progress.
+  use LearningPlatformDB
+
+  // Insert course progress details
+  db.courseProgress.insertMany([
+  { studentId: 101, course: "NoSQL Database Design", modulesCompleted: 5, totalModules: 5, status: "Completed" },
+  { studentId: 102, course: "NoSQL Database Design", modulesCompleted: 2, totalModules: 5, status: "In Progress" }
+  ]);
+
+  // Query: Retrieve students according to their course completion status
+  db.courseProgress.find({ status: "Completed" });
+
+14.Create a Real-Time Order Tracking System where an order moves through stages such as Placed, Confirmed, Shipped, and Delivered. Store the complete status history and retrieve the current status of an order. 
+  use OrderTrackingDB
+
+  // Insert order tracking document with status history array
+  db.trackings.insertMany([
+  {
+    orderId: "ORD999",
+    statusHistory: [
+      { status: "Placed", timestamp: new Date("2026-04-01T10:00:00Z") },
+      { status: "Confirmed", timestamp: new Date("2026-04-01T10:30:00Z") },
+      { status: "Shipped", timestamp: new Date("2026-04-02T14:00:00Z") }
+    ],
+    currentStatus: "Shipped"
+  }
+  ]);
+
+  // Query: Retrieve the current status of an order
+  db.trackings.findOne({ orderId: "ORD999" }, { orderId: 1, currentStatus: 1 });
+
+15.Develop a Flexible News Database in which different news articles may contain different fields such as author, location, category, tags, images, and sources. Write queries to search articles despite variations in document structure.
+  use NewsDB
+
+  // Insert articles with highly varied/flexible schemas
+  db.news.insertMany([
+  { title: "Tech Summit 2026", author: "Staff Writer", location: "New Delhi", category: "Technology", tags: ["AI", "Summit"], publishedDate: new Date() },
+  { title: "Local Sports Meet", source: "Press Trust", category: "Sports", images: ["img1.jpg", "img2.jpg"], publishedDate: new Date() }
+  ]);
+
+  // Query: Search articles safely despite varying document structures using existence checks or standard filters
+  db.news.find({ $or: [{ author: "Staff Writer" }, { source: "Press Trust" }] });
