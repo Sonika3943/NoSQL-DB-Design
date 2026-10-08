@@ -1,0 +1,174 @@
+1.Design a Student Activity Tracking System in MongoDB that stores student details,enrolled courses, attendance, skills, and recent activities. Perform queries to retrieve students based on different activity conditions.
+  use StudentActivityDB
+
+  // Insert sample data
+  db.activities.insertMany([
+  {
+    studentId: 101,
+    name: "Aarav Sharma",
+    courses: ["BCA", "Python"],
+    attendance: { totalClasses: 50, attended: 45 },
+    skills: ["Java", "MongoDB", "HTML"],
+    recentActivities: [
+      { activity: "Submitted Assignment", timestamp: new Date("2026-04-01") },
+      { activity: "Attended Lab", timestamp: new Date("2026-04-02") }
+    ]
+  },
+  {
+    studentId: 102,
+    name: "Priya Singh",
+    courses: ["BCA", "Data Analytics"],
+    attendance: { totalClasses: 50, attended: 38 },
+    skills: ["SQL", "Excel", "Tableau"],
+    recentActivities: [
+      { activity: "Completed Quiz", timestamp: new Date("2026-04-02") }
+    ]
+  }
+  ]);
+
+  // Query: Find students with low attendance (attended < 40)
+  db.activities.find({ "attendance.attended": { $lt: 40 } });
+
+  // Query: Find students who possess a specific skill
+  db.activities.find({ skills: "MongoDB" });
+
+2.Develop an Event Logging System that records login, logout, failed-login, file-upload, and password-change events. Use MongoDB queries to identify repeated failed-login attempts and frequently occurring events. 
+  use EventLogDB
+
+  // Insert sample event logs
+  db.logs.insertMany([
+  { username: "user1", eventType: "failed-login", ip: "192.168.1.10", timestamp: new Date() },
+  { username: "user1", eventType: "failed-login", ip: "192.168.1.10", timestamp: new Date() },
+  { username: "user1", eventType: "failed-login", ip: "192.168.1.10", timestamp: new Date() },
+  { username: "admin", eventType: "login", ip: "192.168.1.5", timestamp: new Date() },
+  { username: "user2", eventType: "file-upload", ip: "192.168.1.20", timestamp: new Date() }
+  ]);
+
+  // Query: Identify repeated failed-login attempts (> 2 times)
+  db.logs.aggregate([
+  { $match: { eventType: "failed-login" } },
+  { $group: { _id: "$username", failedAttempts: { $sum: 1 } } },
+  { $match: { failedAttempts: { $gt: 2 } } }
+  ]);
+
+  // Query: Find frequently occurring event types
+  db.logs.aggregate([
+  { $group: { _id: "$eventType", totalCount: { $sum: 1 } } },
+  { $sort: { totalCount: -1 } }
+  ]);
+
+3. Create a Mini Blogging Platform using MongoDB where each blog contains author, category, tags, comments, and publication information. Retrieve blogs using different combinations of tags and categories. 
+  use BlogDB
+
+  // Insert sample blogs
+  db.blogs.insertMany([
+  {
+    title: "Introduction to NoSQL",
+    author: "Rahul Verma",
+    category: "Database",
+    tags: ["NoSQL", "MongoDB", "BigData"],
+    comments: [{ user: "Amit", text: "Very helpful!" }],
+    published: true,
+    pubDate: new Date("2026-03-15")
+  },
+  {
+    title: "Advanced Data Analytics",
+    author: "Neha Gupta",
+    category: "Analytics",
+    tags: ["Python", "Pandas", "BigData"],
+    comments: [],
+    published: true,
+    pubDate: new Date("2026-04-01")
+  }
+  ]);
+
+  // Query: Retrieve blogs matching a specific combination of category and tag
+  db.blogs.find({ category: "Database", tags: "MongoDB" });
+
+4. Design a Flexible Product Catalog where laptops, mobiles, and cameras have different sets of attributes. Store them in a common collection and write queries to search category specific properties.
+  use ProductCatalogDB
+
+  // Insert mixed product documents with category-specific properties
+  db.products.insertMany([
+  {
+    name: "Dell Inspiron",
+    category: "Laptop",
+    price: 65000,
+    specs: { processor: "Intel i5", ram: "16GB", ssd: "512GB" }
+  },
+  {
+    name: "OnePlus Nord",
+    category: "Mobile",
+    price: 30000,
+    specs: { battery: "4500mAh", camera: "50MP", os: "Android" }
+  },
+  {
+    name: "Canon EOS",
+    category: "Camera",
+    price: 45000,
+    specs: { resolution: "24.1MP", lens: "18-55mm" }
+  }
+  ]);
+
+  // Query: Search category-specific properties (e.g., Laptops with 16GB RAM)
+  db.products.find({ category: "Laptop", "specs.ram": "16GB" });
+
+5. Develop an E-Commerce Order Management System containing customers, products, and orders. Write queries to retrieve a customer's complete purchase history and calculate order totals.
+  use ECommerceDB
+
+  // Insert orders
+  db.orders.insertMany([
+  {
+    orderId: "ORD101",
+    customerEmail: "aarav@coer.ac.in",
+    items: [
+      { productId: "P1", name: "Mouse", qty: 2, price: 500 },
+      { productId: "P2", name: "Keyboard", qty: 1, price: 1500 }
+    ],
+    orderDate: new Date()
+  },
+  {
+    orderId: "ORD102",
+    customerEmail: "aarav@coer.ac.in",
+    items: [
+      { productId: "P3", name: "Backpack", qty: 1, price: 1200 }
+    ],
+    orderDate: new Date()
+  }
+  ]);
+
+  // Query: Retrieve complete purchase history for a customer and calculate order totals
+  db.orders.aggregate([
+  { $match: { customerEmail: "aarav@coer.ac.in" } },
+  { $unwind: "$items" },
+  { $group: {
+      _id: "$orderId",
+      orderDate: { $first: "$orderDate" },
+      totalAmount: { $sum: { $multiply: ["$items.qty", "$items.price"] } }
+    }
+  }
+  ]);
+
+6.Create a Website Analytics System that stores page visits, user ID, device, browser, location, and timestamp. Use aggregation to identify the most visited pages and commonly used devices. 
+  use WebAnalyticsDB
+
+  // Insert analytics tracking logs
+  db.analytics.insertMany([
+  { page: "/home", userId: "U1", device: "Mobile", browser: "Chrome", location: "India", timestamp: new Date() },
+  { page: "/courses", userId: "U2", device: "Desktop", browser: "Firefox", location: "India", timestamp: new Date() },
+  { page: "/home", userId: "U3", device: "Mobile", browser: "Chrome", location: "India", timestamp: new Date() }
+  ]);
+
+  // Query: Find the most visited pages
+  db.analytics.aggregate([
+  { $group: { _id: "$page", visits: { $sum: 1 } } },
+  { $sort: { visits: -1 } }
+  ]);
+
+  // Query: Find commonly used devices
+  db.analytics.aggregate([
+  { $group: { _id: "$device", count: { $sum: 1 } } },
+  { $sort: { count: -1 } }
+  ]);
+
+7.
